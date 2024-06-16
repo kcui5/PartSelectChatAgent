@@ -1,46 +1,49 @@
-import VectorStore
+from modal import App, Image, Secret, web_endpoint
 
-from openai import OpenAI
+app = App("PartSelect Chat Agent")
 
-client = OpenAI()
-
-vector_store_id = VectorStore.load_vector_store_id()
-
-assistant = client.beta.assistants.create(
-    name="PartSelect Chatbot Agent",
-    instructions="You are a chatbot on the PartSelect website. Use you knowledge base to answer questions about refrigerator and dishwasher parts. Respond to unrelated queries with 'Sorry, I can't help with that!'",
-    model="gpt-4o",
-    tools=[{"type": "file_search"}],
-)
-assistant = client.beta.assistants.update(
-  assistant_id=assistant.id,
-  tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}},
+handler_image = (
+    Image.debian_slim()
+    .pip_install("openai")
 )
 
-thread = client.beta.threads.create(
-  messages=[
-    {
-      "role": "user",
-      "content": "Is part PS8727387 compatible with 63013003015?",
-    }
-  ]
-)
- 
-run = client.beta.threads.runs.create_and_poll(
-    thread_id=thread.id, assistant_id=assistant.id
-)
-print("Created run")
+@app.function(image=handler_image, secrets=[Secret.from_name("PSChatAgentOpenAIKey"), Secret.from_name("PSChatAgentVectorStoreID")])
+@web_endpoint(method="POST")
+def ask(req: dict):
+    import os
+    from openai import OpenAI
 
-messages = list(client.beta.threads.messages.list(thread_id=thread.id, run_id=run.id))
+    query: str = req["userQuery"]
+    print("Received", query)
 
-message_content = messages[0].content[0].text
-annotations = message_content.annotations
-citations = []
-for index, annotation in enumerate(annotations):
-    message_content.value = message_content.value.replace(annotation.text, f"[{index}]")
-    if file_citation := getattr(annotation, "file_citation", None):
-        cited_file = client.files.retrieve(file_citation.file_id)
-        citations.append(f"[{index}] {cited_file.filename}")
+    client = OpenAI()
 
-print(message_content.value)
-print("\n".join(citations))
+    vector_store_id = os.environ["PSChatAgentVectorStoreID"]
+
+    assistant = client.beta.assistants.create(
+      name="PartSelect Chatbot Agent",
+      instructions="You are a chatbot on the PartSelect website. Use you knowledge base to answer questions about refrigerator and dishwasher parts. Respond to unrelated queries with 'Sorry, I can't help with that!'",
+      model="gpt-4o",
+      tools=[{"type": "file_search"}],
+      tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}},
+    )
+
+    thread = client.beta.threads.create(
+      messages=[
+        {
+          "role": "user",
+          "content": query,
+        }
+      ]
+    )
+    
+    run = client.beta.threads.runs.create_and_poll(
+        thread_id=thread.id, assistant_id=assistant.id
+    )
+
+    messages = list(client.beta.threads.messages.list(thread_id=thread.id, run_id=run.id))
+
+    message_content = messages[0].content[0].text
+    print(message_content.value)
+
+    return message_content.value
