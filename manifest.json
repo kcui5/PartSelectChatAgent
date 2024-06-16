@@ -1,0 +1,11 @@
+{
+    "manifest_version": 3,
+    "name": "PartSelect Chat Agent",
+    "version": "1.0",
+    "description": "PartSelect Chat Agent in Side Panel",
+    "permissions": ["sidePanel"],
+    "side_panel": {
+      "default_path": "build/index.html"
+    }
+  }
+  
