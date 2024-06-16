@@ -5,7 +5,6 @@ export const getAIMessage = async (userQuery) => {
   try {
     const response = await axios.post('https://kcui5--partselect-chat-agent-ask-dev.modal.run', {
       userQuery: userQuery,
-    }, {
     });
     message = {
       role: "assistant",
