@@ -27,11 +27,18 @@ function ChatWindow() {
     if (input.trim() !== "") {
       // Set user message
       setMessages(prevMessages => [...prevMessages, { role: "user", content: input }]);
+      //Add loading message
+      setMessages(prevMessages => [...prevMessages, { role: "assistant", content: "..."}])
       setInput("");
 
       // Call API & set assistant message
       const newMessage = await getAIMessage(input);
-      setMessages(prevMessages => [...prevMessages, newMessage]);
+      // setMessages(prevMessages => [...prevMessages, newMessage]);
+      setMessages(prevMessages => {
+        let updatedMessages = [...prevMessages];
+        updatedMessages[updatedMessages.length - 1] = newMessage;
+        return updatedMessages;
+      });
     }
   };
 
