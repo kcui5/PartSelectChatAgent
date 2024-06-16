@@ -7,14 +7,11 @@ export const getAIMessage = async (userQuery) => {
       userQuery: userQuery,
     }, {
     });
-    console.log("Received ");
-    console.log(response.data);
     message = {
       role: "assistant",
       content: response.data
     }
   } catch(err) {
-    console.log("API Call Error")
     message = {
       role: "assistant",
       content: "Couldn't connect..."
