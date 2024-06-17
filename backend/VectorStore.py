@@ -27,10 +27,18 @@ def upload_to_vector_store(vector_store_id):
             file_paths.append(file_path)
     print(f"Found files {file_paths}")
 
-    file_streams = [open(path, "rb") for path in file_paths]
-    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-        vector_store_id=vector_store_id, files=file_streams
-    )
+    num_files = len(file_paths)
+    for i in range(num_files // 10):
+        curr_start = 10 * i
+        curr_end = min(len(file_paths), 10 * (i + 1))
+        curr_files = file_paths[curr_start:curr_end]
+        print("Uploading files ", curr_files)
+        file_streams = [open(path, "rb") for path in curr_files]
+        file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+            vector_store_id=vector_store_id, files=file_streams
+        )
+        for file in file_streams:
+            file.close()
 
 if __name__ == "__main__":
     if not os.path.exists(VECTOR_STORE_FILE):
@@ -43,6 +51,3 @@ if __name__ == "__main__":
         vector_store_id = load_vector_store_id()
 
     upload_to_vector_store(vector_store_id)
-
-
-
