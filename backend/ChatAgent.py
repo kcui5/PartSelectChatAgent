@@ -43,7 +43,7 @@ def ask(req: dict):
     relevancy_messages = []
     relevancy_messages.append({
         "role": "system",
-        "content": "You are a chatbot on the PartSelect website. Given a user query to the chatbot you must decide whether or not the query is related to the PartSelect website and its appliances parts. Queries should be strictly relevant to the parts listed on the PartSelect website and inventory including but not limited to refrigerators and dishwashers. Just because the query mentions an appliance does not mean it is relevant, it must pertain to the PartSelect website"
+        "content": "You are a chatbot on the PartSelect website. Given a user query to the chatbot you must decide whether or not the query is related to the PartSelect website and its appliances parts. Queries should be strictly relevant to the parts listed on the PartSelect website and inventory including but not limited to refrigerators and dishwashers. Just because the query mentions an appliance does not mean it is relevant, it must pertain to the PartSelect website. Queries containing a part identification number consisting of a sequence of letters and numbers such as PS000000 are relevant."
     })
     relevancy_messages.append({
         "role": "user",
@@ -58,10 +58,12 @@ def ask(req: dict):
       )
       relevancy_result = relevancy_response.choices[0].message.tool_calls[0].function.arguments[14]
       if relevancy_result == "f":
+         print("Irrelevant request")
          return "Sorry, I can't help with that!"
     except:
        return "Sorry, I can't help with that!"
 
+    print("Relevant request")
     # Now ask relevant question to GPT-4O with knowledge base
     vector_store_id = os.environ["PSChatAgentVectorStoreID"]
 

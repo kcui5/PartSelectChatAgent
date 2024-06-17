@@ -13,7 +13,7 @@ export const getAIMessage = async (userQuery) => {
   } catch(err) {
     message = {
       role: "assistant",
-      content: "Couldn't connect..."
+      content: "Sorry, there was an error..."
     }
   }
 

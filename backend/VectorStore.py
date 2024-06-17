@@ -20,8 +20,8 @@ def load_vector_store_id():
 
 def upload_to_vector_store(vector_store_id):
     file_paths = []
-    for file_name in os.listdir(PartSelectScraper.PAGES_FOLDER):
-        file_path = os.path.join(PartSelectScraper.PAGES_FOLDER, file_name)
+    for file_name in os.listdir(PAGES_FOLDER):
+        file_path = os.path.join(PAGES_FOLDER, file_name)
         
         if os.path.isfile(file_path):
             file_paths.append(file_path)
