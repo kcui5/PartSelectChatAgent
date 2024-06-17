@@ -1,6 +1,6 @@
 from modal import App, Image, Secret, web_endpoint
 
-app = App("PartSelect Chat Agent")
+app = App("PartSelect-Chat-Agent")
 
 handler_image = (
     Image.debian_slim()
