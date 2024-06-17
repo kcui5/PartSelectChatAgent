@@ -4,3 +4,4 @@ node_modules
 backend/__pycache__/
 VectorStoreID.txt
 build/
+presentation/

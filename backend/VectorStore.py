@@ -1,4 +1,4 @@
-import PartSelectScraper
+from PartSelectScraper import PAGES_FOLDER
 
 from openai import OpenAI
 import os

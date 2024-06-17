@@ -18,11 +18,56 @@ def ask(req: dict):
 
     client = OpenAI()
 
+    # Check if the query is relevant using a preliminary function calling check
+    relevancy_tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "is_relevant",
+                "description": "Returns whether the given query is relevant to the PartSelect website and inventory.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "isRelevant": {
+                            "type": "boolean",
+                            "description": "whether or not the query is relevant"
+                        }
+
+                    },
+                    "required": ["isRelevant"],
+                },
+                
+            }
+        }
+    ]
+    relevancy_messages = []
+    relevancy_messages.append({
+        "role": "system",
+        "content": "You are a chatbot on the PartSelect website. Given a user query to the chatbot you must decide whether or not the query is related to the PartSelect website and its appliances parts. Queries should be strictly relevant to the parts listed on the PartSelect website and inventory including but not limited to refrigerators and dishwashers. Just because the query mentions an appliance does not mean it is relevant, it must pertain to the PartSelect website"
+    })
+    relevancy_messages.append({
+        "role": "user",
+        "content": query
+    })
+    try:
+      relevancy_response = client.chat.completions.create(
+          model="gpt-3.5-turbo",
+          messages=relevancy_messages,
+          tools=relevancy_tools,
+          tool_choice={"type": "function", "function": {"name": "is_relevant"}}
+      )
+      relevancy_result = relevancy_response.choices[0].message.tool_calls[0].function.arguments[14]
+      if relevancy_result == "f":
+         return "Sorry, I can't help with that!"
+    except:
+       return "Sorry, I can't help with that!"
+
+    # Now ask relevant question to GPT-4O with knowledge base
     vector_store_id = os.environ["PSChatAgentVectorStoreID"]
 
     assistant = client.beta.assistants.create(
       name="PartSelect Chatbot Agent",
-      instructions="You are a chatbot on the PartSelect website. Use you knowledge base to answer questions about refrigerator and dishwasher parts. Respond to unrelated queries with 'Sorry, I can't help with that!'",
+      instructions="You are a friendly and helpful chatbot on the PartSelect website. Use your knowledge base to answer questions about appliance parts, mainly refrigerator and dishwasher parts. Respond to unrelated queries with 'Sorry, I can't help with that!' Completely adopt the persona of a customer service agent.",
       model="gpt-4o",
       tools=[{"type": "file_search"}],
       tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}},
