@@ -7,7 +7,7 @@ handler_image = (
     .pip_install("openai")
 )
 
-@app.function(image=handler_image, secrets=[Secret.from_name("PSChatAgentOpenAIKey"), Secret.from_name("PSChatAgentVectorStoreID")])
+@app.function(image=handler_image, secrets=[Secret.from_name("PSChatAgentOpenAIKey"), Secret.from_name("PSChatAgentOpenAIOrg"), Secret.from_name("PSChatAgentVectorStoreID")])
 @web_endpoint(method="POST")
 def ask(req: dict):
     import os
@@ -16,7 +16,9 @@ def ask(req: dict):
     query: str = req["userQuery"]
     print("Received", query)
 
-    client = OpenAI()
+    client = OpenAI(
+        organization=os.environ["PSChatAgentOpenAIOrg"],
+    )
 
     # Check if the query is relevant using a preliminary function calling check
     relevancy_tools = [
